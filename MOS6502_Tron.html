@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kevan Vanderstichelen</title>
+    <link rel="stylesheet" href="assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/fonts/font-awesome.min.css">
+    <link rel="stylesheet" href="assets/fonts/ionicons.min.css">
+    <link rel="stylesheet" href="assets/fonts/material-icons.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Abel">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lora">
+    <link rel="stylesheet" href="assets/css/Article-Clean.css">
+    <link rel="stylesheet" href="assets/css/Article-List.css">
+    <link rel="stylesheet" href="assets/css/CD_Game.css">
+    <link rel="stylesheet" href="assets/css/Contact-Form-Clean.css">
+    <link rel="stylesheet" href="assets/css/demo0.css">
+    <link rel="stylesheet" href="assets/css/Features-Boxed.css">
+    <link rel="stylesheet" href="assets/css/Footer-Basic.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.1.1/aos.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/3.3.1/css/swiper.min.css">
+    <link rel="stylesheet" href="assets/css/Links.css">
+    <link rel="stylesheet" href="assets/css/Project.css">
+    <link rel="stylesheet" href="assets/css/reset.css">
+    <link rel="stylesheet" href="assets/css/reset0.css">
+    <link rel="stylesheet" href="assets/css/ScrollA.css">
+    <link rel="stylesheet" href="assets/css/Simple-Slider.css">
+    <link rel="stylesheet" href="assets/css/style-1.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/style0.css">
+    <link rel="stylesheet" href="assets/css/Team-Grid.css">
+</head>
+
+<body><div>
+    <link rel="stylesheet" href="css/reset.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="icon" href="favicon.ico">
+    <title>Kevan Vanderstichelen</title>
+    <header class="cd-header">
+        <div class="cd-logo"><a href="index.html"><img src="assets/img/cd-logo.png" alt="Logo" /></a></div>
+        <nav></nav><a class="cd-primary-nav-trigger" href="#0"><span class="cd-menu-text">Menu</span><span class="cd-menu-icon"></span></a></header>
+    <nav>
+        <ul class="cd-primary-nav">
+            <li class="cd-label">NAVIGATION</li>
+            <li><a href="index.html">HOME</a></li>
+            <li><a href="Contact.html">CONTACT</a></li>
+            <li><a href="Projects.html">PROJECTS</a></li>
+        </ul>
+    </nav>
+</div><div class="widget">
+  <div class="buttons">
+    <input type="button" value="Assemble" class="assembleButton" disabled="disabled">
+    <input type="button" value="Run" class="runButton">
+    <input type="button" value="Reset" class="resetButton">
+    <input type="button" value="Hexdump" class="hexdumpButton">
+    <input type="button" value="Disassemble" class="disassembleButton">
+    <input type="button" value="Notes" class="notesButton">
+  </div>
+
+  <textarea class="code">
+; ___________ _____ _   _ 
+;|_   _| ___ \  _  | \ | |
+;  | | | |_/ / | | |  \| |
+;  | | |    /| | | | . ` |
+;  | | | |\ \\ \_/ / |\  |
+;  \_/ \_| \_|\___/\_| \_/
+; PLAYER ONE CONTROLS: WASD
+; PLAYER TWO CONTROLS: 1235
+
+define player1BikeL			$10 ; screen location of bike, low byte
+define player1BikeH			$11 ; screen location of bike, high byte
+define player1BikeStart 	$12 ; start of trail byte pairs
+define player1BikeDirection	$02 ; direction (possible values are below)
+define player1TrailLength	$03 ; trail length, in bytes
+define player1Collision		$04
+
+define player2BikeL 		$20
+define player2BikeH 		$21
+define player2BikeStart 	$22
+define player2BikeDirection	$00
+define player2TrailLength 	$01
+define player2Collision		$05
+
+define player1Points 	$04
+define player2Points 	$05
+
+define player1Color 	$07
+define player2Color 	$08
+define player2Temp 		$09
+
+define maxRoundToWin 	$0a
+define resetColor 		$0b
+
+; Directions (each using a separate bit)
+define movingUp      1
+define movingRight   2
+define movingDown    4
+define movingLeft    8
+
+; ASCII values of keys controlling the bike
+define ASCII_w      $77
+define ASCII_a      $61
+define ASCII_s      $73
+define ASCII_d      $64
+define ASCII_1		$31
+define ASCII_2		$32
+define ASCII_3		$33
+define ASCII_5		$35
+
+; System variables
+define sysRandom    $fe
+define sysLastKey   $ff
+
+;===================== INITIALIZATION ======================
+
+lda #$01
+sta player1Points
+
+lda #$01
+sta player2Points
+
+start:
+  JSR init
+  JSR loop
+
+init:
+  JSR initMain
+  JSR initBike
+  JSR initUI
+  RTS
+
+initMain:
+  LDA #15
+  STA maxRoundToWin
+  RTS
+
+;----------- INITIALIZATION PLAYER 1 ----------
+initBike:
+  lda #movingRight  ;start direction
+  sta player1BikeDirection
+
+  lda #2  ;start length (2 segments)
+  sta player1TrailLength
+  
+  lda #$20
+  sta player1BikeL
+  
+  lda #$10
+  sta player1BikeStart
+  
+  lda #$0f
+  sta $14 ; trail segment 1
+  
+  lda #$02
+  sta player1BikeH
+  sta $13 ; trail segment 1
+  sta $15 ; trail segment 2
+  
+  lda #3
+  sta player1Color
+  
+  lda player1Points
+  sta player1Points
+
+;----------- INITIALIZATION PLAYER 2 ----------
+initBike2:
+  lda #movingLeft
+  sta player2BikeDirection
+  
+  lda #2
+  sta player2TrailLength
+  
+  lda #$7f
+  sta player2BikeL
+  
+  lda #$10
+  sta player2BikeStart
+  
+  lda #$0f
+  sta $24
+  
+  lda #$05
+  sta player2BikeH
+  sta $23
+  sta $25
+  
+  lda #8
+  sta player2Color
+  
+  lda player2Points
+  sta player2Points
+
+  
+  rts
+;----------- USER INTERFACE INITIALIZATION ----------
+initUI:
+  LDX #$01
+  LDY #$00
+
+UI_Border_Loop:
+  TXA
+  STA $05a0,Y
+  INY
+  CPY #$20
+  BNE UI_Border_Loop
+  LDY #$00
+UI_Border_Loop2:
+  TXA
+  STA $05e0,Y
+  INY
+  CPY #$20
+  BNE UI_Border_Loop2
+  LDY #$00
+
+UI_PointPlayer1_Loop:
+  LDA #$00
+  CMP player1Points
+  BEQ UI_PointPlayer2_Loop
+  LDX player1Color
+  TXA
+  STA $05c0, Y
+  INY
+  CPY player1Points
+  BNE UI_PointPlayer1_Loop
+  
+  LDA #16
+  SBC player2Points
+  STA player2Temp
+  LDY #$00
+UI_PointPlayer2_Loop:
+  CLC
+  LDA #$00
+  CMP player2Points
+  BEQ loop
+  LDX #0
+  TXA
+  STA $05d0, Y
+  INY
+  CPY player2Temp
+  BNE UI_PointPlayer2_Loop
+UI_PointPlayer2_Loop2:
+  LDX player2Color
+  TXA
+  STA $05d0, Y
+  INY
+  CPY #16
+  BNE UI_PointPlayer2_Loop2
+  
+  jmp loop
+
+
+;===================== MAIN LOOP ======================
+
+loop:
+  jsr readKeys
+  jsr updateBike1
+  jsr updateBike2
+  jsr drawBikes
+  jsr delay
+  jsr checkUI
+  jsr checkUI2
+  jmp loop
+
+checkUI:
+  CLC
+  LDA #$5
+  CMP player1BikeH
+  BEQ inUIzone
+  RTS
+
+inUIzone:
+  CLC
+  LDA #$80
+  CMP player1BikeL
+  BMI collisionTEMP1
+  RTS
+
+checkUI2:
+  CLC
+  LDA #$5
+  CMP player2BikeH
+  BEQ inUIzone2
+  RTS
+
+inUIzone2:
+  CLC
+  LDA #$80
+  CMP player2BikeL
+  BMI collisionTEMP2
+  RTS
+
+
+;===================== GET KEYS ======================
+readKeys:
+  lda sysLastKey
+  cmp #ASCII_w
+  beq upKey
+  cmp #ASCII_d
+  beq rightKey
+  cmp #ASCII_s
+  beq downKey
+  cmp #ASCII_a
+  beq leftKey
+  cmp #ASCII_5
+  beq upKey2
+  cmp #ASCII_3
+  beq rightKey2
+  cmp #ASCII_2
+  beq downKey2
+  cmp #ASCII_1
+  beq leftKey2
+  rts
+  
+upKey:
+  lda #movingDown
+  bit player1BikeDirection
+  bne illegalMove
+
+  lda #movingUp
+  sta player1BikeDirection
+  rts
+rightKey:
+  lda #movingLeft
+  bit player1BikeDirection
+  bne illegalMove
+
+  lda #movingRight
+  sta player1BikeDirection
+  rts
+downKey:
+  lda #movingUp
+  bit player1BikeDirection
+  bne illegalMove
+
+  lda #movingDown
+  sta player1BikeDirection
+  rts
+leftKey:
+  lda #movingRight
+  bit player1BikeDirection
+  bne illegalMove
+
+  lda #movingLeft
+  sta player1BikeDirection
+  rts
+
+collisionTEMP1:
+jmp collision1
+collisionTEMP2:
+jmp collision2
+
+upKey2:
+  lda #movingDown
+  bit player2BikeDirection
+  bne illegalMove
+
+  lda #movingUp
+  sta player2BikeDirection
+  rts
+rightKey2:
+  lda #movingLeft
+  bit player2BikeDirection
+  bne illegalMove
+
+  lda #movingRight
+  sta player2BikeDirection
+  rts
+downKey2:
+  lda #movingUp
+  bit player2BikeDirection
+  bne illegalMove
+
+  lda #movingDown
+  sta player2BikeDirection
+  rts
+leftKey2:
+  lda #movingRight
+  bit player2BikeDirection
+  bne illegalMove
+
+  lda #movingLeft
+  sta player2BikeDirection
+  rts
+
+illegalMove:
+  rts
+
+;===================== UPDATE 1 ======================
+
+
+
+updateBike1:
+  inc player1TrailLength
+
+  lda player1BikeDirection
+  lsr
+  bcs up
+  lsr
+  bcs right
+  lsr
+  bcs down
+  lsr
+  bcs left
+up:
+  lda player1BikeL
+  sec
+  sbc #$20
+  sta player1BikeL
+  bcc upup
+  jmp trailCollision1
+upup:
+  dec player1BikeH
+  lda #$1
+  cmp player1BikeH
+  beq collision1TEMP
+  jmp trailCollision1
+right:
+  inc player1BikeL
+  lda #$1f
+  bit player1BikeL
+  beq collision1TEMP
+  jmp trailCollision1
+down:
+  lda player1BikeL
+  clc
+  adc #$20
+  sta player1BikeL
+  bcs downdown
+  jmp trailCollision1
+downdown:
+  inc player1BikeH
+  lda #$6
+  cmp player1BikeH
+  beq collision1TEMP
+  jmp trailCollision1
+left:
+  dec player1BikeL
+  lda player1BikeL
+  and #$1f
+  cmp #$1f
+  beq collision1TEMP
+  jmp trailCollision1
+  
+trailCollision1:
+  lda #$5
+  cmp player1TrailLength
+  bcs back
+  
+  lda #$0
+  ldx player1BikeL
+  ldy #$03
+  
+  cpy player1BikeH
+  bcc p1moreThan3
+  
+  cpy player1BikeH
+  beq p1three
+  cmp $0200, X
+  beq back
+  jmp collision1
+  
+p1three:
+  cmp $0300, X
+  beq back
+  jmp collision1
+  
+p1moreThan3:
+  ldy #$05
+  cpy player1BikeH
+  beq p1five
+  cmp $0400, X
+  beq back
+  jmp collision1
+  
+p1five:
+  cmp $0500, X
+  beq back
+  jmp collision1
+  
+ back:
+  rts
+  
+collision1TEMP:
+  jmp collision1
+  
+;===================== UPDATE 2 ======================
+  
+updateBike2:
+  inc player2TrailLength
+
+  lda player2BikeDirection
+  lsr
+  bcs up2
+  lsr
+  bcs right2
+  lsr
+  bcs down2
+  lsr
+  bcs left2
+up2:
+  lda player2BikeL
+  sec
+  sbc #$20
+  sta player2BikeL
+  bcc upup2
+  jmp trailCollision2 
+upup2:
+  dec player2BikeH
+  lda #$1
+  cmp player2BikeH
+  beq collision2
+  jmp trailCollision2 
+right2:
+  inc player2BikeL
+  lda #$1f
+  bit player2BikeL
+  beq collision2
+  jmp trailCollision2 
+down2:
+  lda player2BikeL
+  clc
+  adc #$20
+  sta player2BikeL
+  bcs downdown2
+  jmp trailCollision2 
+downdown2:
+  inc player2BikeH
+  lda #$6
+  cmp player2BikeH
+  beq collision2
+  jmp trailCollision2 
+left2:
+  dec player2BikeL
+  lda player2BikeL
+  and #$1f
+  cmp #$1f
+  beq collision2
+  jmp trailCollision2 
+
+trailCollision2:
+  lda #$5
+  cmp player2TrailLength
+  bcs back2
+  
+  lda #$0
+  ldx player2BikeL
+  ldy #$03
+  
+  cpy player2BikeH
+  bcc p1moreThan3
+  cpy player2BikeH
+  beq p2three
+  cmp $0200, X
+  beq back2
+  jmp collision2
+p2three:
+  cmp $0300, X
+  beq back2
+  jmp collision2
+p2moreThan3:
+  ldy #$05
+  cpy player2BikeH
+  beq p2five
+  cmp $0400, X
+  beq back2
+  jmp collision2
+p2five:
+  cmp $0500, X
+  beq back2
+  jmp collision2
+
+  back2:
+  rts
+
+  
+;================= UPDATE COLLISION ==================
+
+collision1:
+  INC player2Points
+  INC player2Points
+  CLC
+  LDA maxRoundToWin
+  CMP player2Points
+  BMI player2Won
+  jmp gameOver
+ 
+collision2:
+  INC player1Points
+  INC player1Points
+  CLC
+  LDA maxRoundToWin
+  CMP player1Points
+  BMI player1Won
+  jmp gameOver
+  
+;======================= DRAW ========================
+
+drawBikes:
+  ldx #0
+  lda player1Color
+  sta (player1BikeL,x) ; paint bike
+  
+  ldx #0
+  lda player2Color
+  sta (player2BikeL,x) ; paint bike
+  rts
+
+
+delay:
+  ldx #0
+spinloop:
+  nop
+  nop
+  dex
+  bne spinloop
+  rts
+
+;===================== GAME OVER ======================
+
+player1Won:
+  LDA player1Color
+  STA resetColor
+  JSR resetScreen
+  JMP theEnd
+player2Won:
+  LDA player2Color
+  STA resetColor
+  JSR resetScreen
+  JMP theEnd
+
+gameOver:
+  JSR resetScreen
+  JMP start
+
+resetScreen:
+  LDX resetColor
+  LDY #$00
+  TXA
+  STA $0200
+resetScreen1:
+  TXA
+  STA $0201,Y
+  INY
+  CPY #$ff
+  BNE resetScreen1
+  TXA
+
+  STA $0300
+  LDY #$00
+resetScreen2:
+  TXA
+  STA $0301,Y
+  INY
+  CPY #$ff
+  BNE resetScreen2
+
+  STA $0400
+  LDY #$00
+resetScreen3:
+  TXA
+  STA $0401,Y
+  INY
+  CPY #$ff
+  BNE resetScreen3
+
+  LDY #$00
+resetScreen4:
+  TXA
+  STA $0500,Y
+  INY
+  CPY #$a0
+  BNE resetScreen4
+
+  lda #$00
+  sta sysLastKey
+  
+  RTS
+
+theEnd:
+
+lda #$00
+;W
+sta $0364
+sta $0384
+sta $03a4
+sta $03c4
+sta $03e4
+sta $0404
+sta $0424
+sta $0444
+sta $0445
+sta $0426
+sta $0407
+sta $0428
+sta $0449
+sta $044a
+sta $042a
+sta $040a
+sta $03ea
+sta $03ca
+sta $03aa
+sta $038a
+sta $036a
+;O
+sta $036d
+sta $038d
+sta $03ad
+sta $03cd
+sta $03ed
+sta $040d
+sta $042d
+sta $044d
+sta $036e
+sta $044e
+sta $036f
+sta $044f
+sta $0370
+sta $0450
+sta $0371
+sta $0451
+sta $0372
+sta $0392
+sta $03b2
+sta $03d2
+sta $03f2
+sta $0412
+sta $0432
+sta $0452
+;N
+sta $0455
+sta $0435
+sta $0415
+sta $03f5
+sta $03d5
+sta $03b5
+sta $0395
+sta $0375
+sta $0376
+sta $0397
+sta $03b7
+sta $03d8
+sta $03f8
+sta $0419
+sta $0439
+sta $045a
+sta $045b
+sta $043b
+sta $041b
+sta $03fb
+sta $03db
+sta $03bb
+sta $039b
+sta $037b
+
+
+  </textarea>
+
+  <canvas class="screen" width="160" height="160"></canvas>
+
+  <div class="debugger">
+    <input type="checkbox" class="debug" name="debug">
+    <label for="debug">Debugger</label>
+    <div class="minidebugger">A=$00 X=$00 Y=$00<br>SP=$ff PC=$0600<br>NV-BDIZC<br>00110000</div>
+    <div class="buttons">
+      <input type="button" value="Step" class="stepButton" disabled="disabled">
+      <input type="button" value="Jump to..." class="gotoButton" disabled="disabled">
+    </div>
+  </div>
+
+  <div class="monitorControls">
+    <label for="monitoring">Monitor</label>
+    <input type="checkbox" class="monitoring" name="monitoring">
+
+    <label for="start">Start: $</label>
+    <input type="text" value="0" class="start" name="start">
+    <label for="length">Length: $</label>
+    <input type="text" value="ff" class="length" name="length">
+  </div>
+
+  <div class="monitor"><pre><code></code></pre></div>
+  <div class="messages"><pre><code>Preprocessing ...
+Indexing labels ...
+Found 67 labels.
+Assembling code ...
+Code assembled successfully, 1010 bytes.
+
+Stopped
+
+</code></pre></div>
+
+  <div class="notes" style="display: none">Notes:
+
+Memory location $fe contains a new random byte on every instruction.
+Memory location $ff contains the ascii code of the last key pressed.
+
+Memory locations $200 to $5ff map to the screen pixels. Different values will
+draw different colour pixels. The colours are:
+
+$0: Black
+$1: White
+$2: Red
+$3: Cyan
+$4: Purple
+$5: Green
+$6: Blue
+$7: Yellow
+$8: Orange
+$9: Brown
+$a: Light red
+$b: Dark grey
+$c: Grey
+$d: Light green
+$e: Light blue
+$f: Light grey
+    </div>
+</div>
+    <div class="footer-basic">
+        <footer>
+            <div class="social"><a href="https://www.facebook.com/vanderstichelen.kevan"><i class="icon ion-social-facebook" style="color:rgb(1,53,105);"></i></a><a href="https://www.linkedin.com/in/kevan-vanderstichelen-923927142/"><i class="icon ion-social-linkedin" style="color:rgb(0,31,62);"></i></a>
+                <a
+                    href="https://www.instagram.com/kevanvanderstichelen/?hl=en"><i class="icon ion-social-instagram" style="color:rgb(180,42,92);"></i></a><a href="https://plus.google.com/u/0/117069638654351711056"><i class="icon ion-social-googleplus" style="color:rgb(239,83,16);"></i></a></div>
+            <ul class="list-inline"
+                style="margin:7px;">
+                <li class="list-inline-item"><a href="index.html" style="color:rgb(34,34,34);">HOME</a></li>
+                <li class="list-inline-item"><a href="Contact.html" style="color:rgb(34,34,34);">CONTACT</a></li>
+                <li class="list-inline-item"><a href="Projects.html" style="color:rgb(34,34,34);">PROJECTS</a></li>
+            </ul>
+            <p class="copyright" style="margin-top:25px;font-size:16px;color:rgb(34,34,34);"><br>&nbsp;Phone:&nbsp;<a href="tel:32485361919"><strong>(+32) 485 36 19 19</strong></a><strong>&nbsp;</strong>| Email:<strong>&nbsp;</strong><a href="mailto:k.vanderstichelen@gmail.com"><strong>K.Vanderstichelen@gmail.com</strong></a><br><br></p>
+            <p
+                class="copyright" style="margin:-17px;font-size:16px;color:rgb(34,34,34);font-family:Abel, sans-serif;"><br>Designed by&nbsp;<a href="index.html"><strong>Kevan Vanderstichelen</strong></a><br><br></p>
+        </footer>
+    </div>
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="assets/js/assembler.js"></script>
+    <script src="assets/js/bs-animation.js"></script>
+    <script src="assets/js/es5-shim.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.1.1/aos.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/3.3.1/js/swiper.jquery.min.js"></script>
+    <script src="assets/js/jquery-2.1.1.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/main0.js"></script>
+    <script src="assets/js/modernizr.js"></script>
+    <script src="assets/js/Projects.js"></script>
+    <script src="assets/js/Simple-Slider1.js"></script>
+    <script src="assets/js/SmoothS.js"></script>
+</body>
+
+</html>
