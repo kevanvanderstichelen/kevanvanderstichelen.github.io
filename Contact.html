@@ -41,34 +41,20 @@
     <link rel="stylesheet" href="assets/css/style.css" />
     <link rel="stylesheet" href="assets/css/style0.css" />
     <link rel="stylesheet" href="assets/css/Team-Grid.css" />
+    <link rel="icon" type="image/png" href="assets/img/favicon.png" />
   </head>
 
   <body>
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <link rel="icon" href="favicon.ico" />
-      <link rel="stylesheet" href="css/reset.css" />
-      <!-- CSS reset -->
-      <link rel="stylesheet" href="css/style.css" />
-      <!-- Resource style -->
-      <script src="js/modernizr.js"></script>
-      <!-- Modernizr -->
-
-      <title>Kevan Vanderstichelen</title>
-    </head>
     <header class="cd-header">
       <div class="cd-logo">
         <a href="index.html"><img src="assets/img/cd-logo.png" alt="Logo" /></a>
       </div>
 
       <nav></nav>
-      <!-- cd-nav -->
 
       <a class="cd-primary-nav-trigger" href="#0">
         <span class="cd-menu-text">Menu</span><span class="cd-menu-icon"></span>
       </a>
-      <!-- cd-primary-nav-trigger -->
     </header>
     <nav>
       <ul class="cd-primary-nav">
@@ -89,58 +75,91 @@
         background-image: url(&quot;https://images.unsplash.com/photo-1498049860654-af1a5c566876&quot;);
         background-size: cover;
         background-repeat: no-repeat;
-        height: 100%;
+        min-height: 100vh;
         width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
       "
     >
-      <form
-        action="mailto:k.vanderstichelen@gmail.com"
-        method="post"
-        style="margin-top: 10%"
-      >
-        <h2 class="text-center" style="color: rgb(49, 52, 55)">
-          <span>CONTACT ME</span>
-        </h2>
-        <div class="form-group">
-          <input
-            class="form-control"
-            type="text"
-            name="name"
-            placeholder="Name"
-          />
+      <div class="contact-wrapper">
+        <!-- Contact Info Box -->
+        <div class="contact-info-box">
+          <div class="contact-info-box-item">
+            <h4>Email</h4>
+            <a href="mailto:k.vanderstichelen@gmail.com">
+              k.vanderstichelen@gmail.com
+            </a>
+          </div>
+
+          <div class="contact-info-box-item">
+            <h4>LinkedIn</h4>
+            <a
+              href="https://www.linkedin.com/in/kevan-vanderstichelen/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              linkedin.com/in/kevan-vanderstichelen
+            </a>
+          </div>
         </div>
-        <div class="form-group">
-          <input
-            class="form-control"
-            type="text"
-            name="email"
-            required=""
-            placeholder="Email"
-            autocomplete="on"
-            inputmode="email"
-          />
-        </div>
-        <div class="form-group">
-          <select class="form-control" required="">
-            <optgroup label="Choose a option">
-              <option value="13">I would like to request your CV.</option>
-              <option value="12">Questions</option>
-              <option value="10">Other</option>
-            </optgroup>
-          </select>
-        </div>
-        <div class="form-group">
-          <textarea
-            class="form-control"
-            rows="14"
-            name="message"
-            placeholder="Message"
-          ></textarea>
-        </div>
-        <div class="form-group">
-          <button class="btn btn-primary btn-block" type="submit">send</button>
-        </div>
-      </form>
+
+        <!-- Contact Form -->
+        <form
+          action="mailto:k.vanderstichelen@gmail.com"
+          method="post"
+          style="background-color: rgba(255, 255, 255, 0.95)"
+        >
+          <h2
+            class="text-center"
+            style="color: rgb(49, 52, 55); margin-bottom: 30px"
+          >
+            <span>CONTACT ME</span>
+          </h2>
+          <div class="form-group">
+            <input
+              class="form-control"
+              type="text"
+              name="name"
+              placeholder="Name"
+            />
+          </div>
+          <div class="form-group">
+            <input
+              class="form-control"
+              type="text"
+              name="email"
+              required=""
+              placeholder="Email"
+              autocomplete="on"
+              inputmode="email"
+            />
+          </div>
+          <div class="form-group">
+            <select class="form-control" required="">
+              <optgroup label="Choose a option">
+                <option value="13">I would like to request your CV.</option>
+                <option value="12">Questions</option>
+                <option value="10">Other</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="form-group">
+            <textarea
+              class="form-control"
+              rows="14"
+              name="message"
+              placeholder="Message"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <button class="btn btn-primary btn-block" type="submit">
+              send
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
     <script src="assets/js/jquery.min.js"></script>
     <script src="assets/bootstrap/js/bootstrap.min.js"></script>
